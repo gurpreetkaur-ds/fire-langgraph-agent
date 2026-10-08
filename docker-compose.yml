@@ -1,0 +1,34 @@
+# API and evaluation worker as separate processes sharing one database volume.
+# For several API replicas / workers use a server database via EVAL_DATABASE_URL instead of SQLite.
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      EVAL_WORKER_MODE: external   # evaluation is done by the worker container, not inside the API process
+      EVAL_DATABASE_URL: sqlite:////srv/app/data/evaluation.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - eval-data:/srv/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  eval-worker:
+    build: .
+    command: ["python", "-m", "evaluation.worker"]
+    env_file: .env
+    environment:
+      EVAL_DATABASE_URL: sqlite:////srv/app/data/evaluation.db
+    volumes:
+      - eval-data:/srv/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  eval-data:
