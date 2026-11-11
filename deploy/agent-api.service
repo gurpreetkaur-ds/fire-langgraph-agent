@@ -1,0 +1,18 @@
+[Unit]
+Description=Fire LangGraph Agent + Evaluation Center (FastAPI, behind Apache)
+After=network-online.target
+
+[Service]
+User=@USER@
+WorkingDirectory=@REPO@
+# Settings come from @REPO@/.env (chmod 600). Migrations run on startup; the eval worker runs inline.
+ExecStart=@REPO@/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8310 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1 --no-access-log
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=@REPO@/data
+
+[Install]
+WantedBy=multi-user.target

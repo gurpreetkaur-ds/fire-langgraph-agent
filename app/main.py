@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 import json
 import logging
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -38,7 +39,7 @@ _background_tasks: set[asyncio.Task] = set()  # keeps references so finalize tas
 
 
 class AnalyzeRequest(BaseModel):
-    question: str
+    question: str = Field(max_length=4000)
     session_id: str | None = Field(default=None, max_length=100)
 
 
@@ -77,7 +78,20 @@ async def index():
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "fire_key_configured": bool(os.environ.get("FIRE_API_KEY"))}
+    return {
+        "status": "ok",
+        "fire_key_configured": bool(os.environ.get("FIRE_API_KEY")),
+        "access_required": bool(os.environ.get("AGENT_ACCESS_TOKEN")),
+    }
+
+
+def _check_agent_access(supplied: str | None) -> None:
+    """When AGENT_ACCESS_TOKEN is set (public deploys), asking questions needs it; each question spends Fire credit."""
+    expected = os.environ.get("AGENT_ACCESS_TOKEN")
+    if not expected:
+        return
+    if not supplied or not hmac.compare_digest(supplied.strip().encode(), expected.encode()):
+        raise HTTPException(401, "Wrong or missing access password.")
 
 
 def _sse(payload: dict) -> str:
@@ -85,7 +99,8 @@ def _sse(payload: dict) -> str:
 
 
 @app.post("/api/analyze/stream")
-async def analyze_stream(req: AnalyzeRequest):
+async def analyze_stream(req: AnalyzeRequest, x_access_token: str | None = Header(default=None)):
+    _check_agent_access(x_access_token)
     question = (req.question or "").strip()
 
     async def event_gen():

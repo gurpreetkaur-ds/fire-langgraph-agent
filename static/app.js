@@ -6,6 +6,8 @@ const EXAMPLES = [
 
 const els = {
   question: document.getElementById("questionInput"),
+  accessRow: document.getElementById("accessRow"),
+  access: document.getElementById("accessInput"),
   examples: document.getElementById("examples"),
   analyzeBtn: document.getElementById("analyzeBtn"),
   btnLabel: document.querySelector(".btn-label"),
@@ -42,6 +44,7 @@ async function checkHealth() {
   try {
     const res = await fetch("/api/health");
     const data = await res.json();
+    if (data.access_required) showAccessField();
     if (data.fire_key_configured) {
       els.healthDot.classList.add("ok");
       els.healthText.textContent = "Fire key configured";
@@ -113,6 +116,13 @@ function setLoading(isLoading) {
   els.btnLabel.textContent = isLoading ? "Running workflow..." : "Analyze Question";
 }
 
+function showAccessField() {
+  els.accessRow.hidden = false;
+  if (!els.access.value) {
+    try { els.access.value = sessionStorage.getItem("agentToken") || ""; } catch { /* storage may be blocked */ }
+  }
+}
+
 async function runAnalysis() {
   const question = els.question.value.trim();
   if (!question) {
@@ -125,12 +135,27 @@ async function runAnalysis() {
   setStageState("decompose", "active");
 
   try {
+    const headers = { "Content-Type": "application/json" };
+    const password = els.access.value.trim();
+    if (password) headers["X-Access-Token"] = password;
     const res = await fetch("/api/analyze/stream", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ question }),
     });
 
+    if (res.status === 401) {
+      showAccessField();
+      try { sessionStorage.removeItem("agentToken"); } catch { /* ignore */ }
+      els.access.focus();
+      throw new Error(password ? "Wrong access password." : "Enter the access password first.");
+    }
+    if (res.status === 422) {
+      throw new Error("Question is too long (max 4000 characters).");
+    }
+    if (password) {
+      try { sessionStorage.setItem("agentToken", password); } catch { /* ignore */ }
+    }
     if (!res.ok || !res.body) {
       throw new Error(`Request failed (HTTP ${res.status})`);
     }

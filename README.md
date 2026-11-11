@@ -92,3 +92,9 @@ docker compose up --build        # api (EVAL_WORKER_MODE=external) + eval-worker
 * Set `EVAL_ENABLED=false` to turn evaluation off entirely (traces are still stored).
 
 Environment variables are documented in `.env.example`.
+
+## Public deploy (single server, Apache + systemd)
+
+Set `AGENT_ACCESS_TOKEN` and `EVAL_ADMIN_TOKEN` in `.env`, then `sudo bash deploy/install.sh <hostname>`. It gets a Let's Encrypt
+certificate, installs the `agent-api` service (uvicorn on 127.0.0.1:8310) and an Apache HTTPS site. Re-run it (or
+`sudo systemctl restart agent-api`) to deploy code changes. Undo steps are in the script header.

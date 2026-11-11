@@ -391,3 +391,17 @@ table.data tr.click:hover td, table.data tr.click:focus td { background: rgba(25
 .reason { color: var(--muted); font-size: 12px; margin-top: 2px; max-width: 520px; }
 .warnline { color: var(--amber); margin: 4px 0; }
 @media (max-width: 640px) { .tabs { margin: 0; } .hero-score { font-size: 42px; } }
+
+/* Access password (shown only when the server sets AGENT_ACCESS_TOKEN) */
+.access-row { margin-top: 14px; max-width: 360px; }
+.access-row input {
+  width: 100%;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.access-row input:focus { outline: 2px solid var(--indigo); }

@@ -146,3 +146,24 @@ def test_llm_failure_is_traced_as_failed_request(client, monkeypatch):
                 break
         time.sleep(0.05)
     assert t.success is False and "503" in t.error and t.answer is None
+
+
+def test_agent_is_open_when_no_access_token_is_set(client, monkeypatch):
+    monkeypatch.delenv("AGENT_ACCESS_TOKEN", raising=False)
+    assert client.get("/api/health").json()["access_required"] is False
+    assert client.post("/api/analyze/stream", json={"question": "   "}).status_code == 200
+
+
+def test_agent_requires_access_token_when_set(client, monkeypatch):
+    monkeypatch.setenv("AGENT_ACCESS_TOKEN", "agent-secret-123")
+    assert client.get("/api/health").json()["access_required"] is True
+    assert client.post("/api/analyze/stream", json={"question": "Why?"}).status_code == 401
+    bad = {"X-Access-Token": "nope"}
+    assert client.post("/api/analyze/stream", json={"question": "Why?"}, headers=bad).status_code == 401
+    good = {"X-Access-Token": "agent-secret-123"}
+    r = client.post("/api/analyze/stream", json={"question": "   "}, headers=good)
+    assert r.status_code == 200 and "cannot be empty" in r.text
+
+
+def test_overlong_question_is_rejected(client):
+    assert client.post("/api/analyze/stream", json={"question": "x" * 4001}).status_code == 422
