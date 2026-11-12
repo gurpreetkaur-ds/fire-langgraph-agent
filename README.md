@@ -1,5 +1,7 @@
 # Fire Agent — LangGraph + RAG
 
+**Live site: https://agent.papillon.website** (sign-up needs an invite code)
+
 A document-aware AI assistant. Upload PDFs, Word files, Markdown, text or CSV; ask questions in a streaming chat; get
 answers that cite the exact passages they came from, or a clear "your documents don't contain this". Under the hood a
 LangGraph agent routes each question to retrieval-augmented generation, to a multi-agent research pipeline, or to a
@@ -83,7 +85,7 @@ Migrations run automatically at startup (`EVAL_AUTO_MIGRATE=true`). To run them 
 .venv/bin/uvicorn app.main:app --port 8000
 ```
 
-Open http://127.0.0.1:8000, create an account (enter the invite code if `AGENT_ACCESS_TOKEN` is set), upload documents
+Open http://localhost:8000 in your browser (the live version runs at **https://agent.papillon.website**), create an account (enter the invite code if `AGENT_ACCESS_TOKEN` is set), upload documents
 under **Knowledge base**, and ask away. Indexing runs in the background inside the API process.
 
 ## Environment variables
