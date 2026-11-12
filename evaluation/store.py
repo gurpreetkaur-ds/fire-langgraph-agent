@@ -94,6 +94,8 @@ def persist_trace(
             tool_call_count=len(collector.tool_calls),
             success=success,
             error=clean_error,
+            route=collector.route,
+            timeline=list(collector.timeline) or None,
         )
         trace.steps = [
             AgentStep(

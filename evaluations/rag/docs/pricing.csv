@@ -1,0 +1,5 @@
+plan,monthly_price_eur,seats_included,api_calls_per_month,support
+Starter,19,3,10000,Email
+Team,79,10,100000,Email and chat
+Business,249,50,1000000,24/7 phone
+Enterprise,custom,unlimited,custom,Dedicated manager

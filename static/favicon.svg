@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Fire Agent mark: a tiny lavender butterfly. Mid-tone fills + a plum outline keep it readable on light and dark tabs. -->
+  <defs>
+    <linearGradient id="up" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C7B2FF"/>
+      <stop offset="1" stop-color="#A88BF5"/>
+    </linearGradient>
+    <linearGradient id="lo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7B6D2"/>
+      <stop offset="1" stop-color="#F59BB0"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#5B4691" stroke-width="2.4" stroke-linejoin="round">
+    <path d="M30.5 30 C26 15 13 6 6.5 11 C1 15.5 4 27 14 31.5 C20 34 26 33.5 30.5 32 Z" fill="url(#up)"/>
+    <path d="M33.5 30 C38 15 51 6 57.5 11 C63 15.5 60 27 50 31.5 C44 34 38 33.5 33.5 32 Z" fill="url(#up)"/>
+    <path d="M30.5 34 C22 34.5 12 39 12.5 47.5 C13 55 21.5 56 26 50 C29 46 30.5 40 30.5 36 Z" fill="url(#lo)"/>
+    <path d="M33.5 34 C42 34.5 52 39 51.5 47.5 C51 55 42.5 56 38 50 C35 46 33.5 40 33.5 36 Z" fill="url(#lo)"/>
+  </g>
+  <circle cx="15" cy="18" r="3.4" fill="#FFFFFF" opacity="0.75"/>
+  <circle cx="49" cy="18" r="3.4" fill="#FFFFFF" opacity="0.75"/>
+  <circle cx="21" cy="45" r="2.2" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="43" cy="45" r="2.2" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="29.4" y="22" width="5.2" height="28" rx="2.6" fill="#5B4691"/>
+  <path d="M30.6 23 C29 17 26.5 13.5 23.5 12 M33.4 23 C35 17 37.5 13.5 40.5 12" stroke="#5B4691" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="23.2" cy="11.8" r="2.1" fill="#5B4691"/>
+  <circle cx="40.8" cy="11.8" r="2.1" fill="#5B4691"/>
+</svg>

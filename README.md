@@ -1,100 +1,147 @@
-# Fire LangGraph Agent + AI Evaluation Center
+# Fire Agent — LangGraph + RAG
 
-A multi-agent LangGraph workflow (every LLM call routed through Fire's `/v1/chat`) with a production-style LLM evaluation
-platform: request tracing, modular evaluators, a background evaluation worker, a regression-testing suite, and an in-app
-**Evaluation Center** dashboard.
+A document-aware AI assistant. Upload PDFs, Word files, Markdown, text or CSV; ask questions in a streaming chat; get
+answers that cite the exact passages they came from, or a clear "your documents don't contain this". Under the hood a
+LangGraph agent routes each question to retrieval-augmented generation, to a multi-agent research pipeline, or to a
+direct answer, and every run is traced and automatically evaluated.
 
-## Architecture
+All model calls go through **Fire** (`/v1/chat`, `/v1/chat/stream`, `/v1/embed`); vectors live in **PostgreSQL + pgvector**.
 
-```
-Browser ──► FastAPI (app/main.py) ──► WorkflowRun (app/runner.py) ──► LangGraph (app/graph.py)
-                │                          │  trace_id, per-call tracing         decompose ► answer ► synthesize
-                │                          ▼                                         │ every LLM call
-                │                 persist trace (redacted)                           ▼
-                │                          │                              FireChatModel ► Fire /v1/chat
-                │                          ▼
-                │                evaluation_runs (status=pending)  ◄── the database is the queue
-                │                          │
-                │                          ▼
-                │              Evaluation worker (inline or separate process)
-                │                EvaluationEngine ─ Faithfulness · Relevance · Groundedness · Citation
-                │                                    Tool accuracy · Hallucination · Safety  (LLM judge via Fire)
-                │                          ▼
-                └── /api/eval/* (token-protected, read-only) ◄── SQLite/any SQLAlchemy DB ──► Evaluation Center UI
-```
+![Chat with cited answer](docs/img/chat-rag.png)
 
-**Multi-agent workflow** (unchanged): *Decomposer* (splits the question into 2–4 sub-questions) → *Answer agent* (answers each) →
-*Synthesizer* (writes the final answer). The answer is streamed to the user first; tracing/evaluation never add user-facing latency.
+## What's inside
 
-**Evaluation architecture.** After the stream ends the trace is stored and an evaluation is queued. A worker claims it, runs all
-evaluators concurrently, and stores per-metric results (`evaluation_metrics`) plus denormalised scores for fast dashboards
-(`evaluation_runs`). Tables: `agent_traces`, `agent_steps`, `tool_calls`, `evaluation_runs`, `evaluation_metrics` (Alembic migration `0001`).
+- **Routed LangGraph agent**: Query Analyzer → (Query Rewriter → Retriever → Reranker → Context Builder → Response
+  Generator → Citation Validator) | (Decomposer → Research agent → Synthesizer, the original pipeline) | Direct answer.
+  Conditional edges, conversation-aware query rewriting, graceful degradation on errors. → [docs/architecture.md](docs/architecture.md)
+- **Complete RAG pipeline**: validation + content sniffing, extraction with page/heading/row provenance, cleaning,
+  boundary-aware chunking with overlap, Fire embeddings with retries, pgvector storage, user-scoped exact search, hybrid
+  reranking (cosine + IDF term overlap), threshold + relative cutoff, de-duplication, context budgeting, citation validation.
+- **App**: accounts (invite-gated sign-up), persistent searchable conversations, streaming Markdown with highlighted code,
+  inline citation chips that open the cited passage, copy / regenerate / stop, file attachments scoped to the next question,
+  a live **Intelligence panel** (route, LangGraph nodes, tools, retrieval stats, sources, timings), a **Knowledge base**
+  dashboard (drag-and-drop upload, live indexing status, semantic search, previews, re-index, delete, real statistics),
+  **Agent activity** (execution timelines, model and tool latency, tokens, errors) and **Settings**.
+- **AI Evaluation Center** (admin, from the original project): LLM-judge faithfulness, relevance, groundedness, citation
+  accuracy, tool accuracy, hallucination and safety for every request, trends, regression suites → [docs/evaluation.md](docs/evaluation.md).
 
-**Metrics:** faithfulness, answer relevance, groundedness, citation accuracy, tool accuracy, hallucination rate, safety; plus latency,
-tokens, estimated cost, tool-call count and error rate. Metrics that cannot be computed are reported as `not_available`, never
-invented. For this workflow citation and tool accuracy are `not_available` (it has no citations or tools); faithfulness,
-groundedness and hallucination measure the final answer against the **research notes**, not against external truth. Full method:
-[docs/evaluation.md](docs/evaluation.md).
+| Knowledge base | Agent activity |
+|---|---|
+| ![Knowledge base](docs/img/knowledge-base.png) | ![Agent activity](docs/img/activity.png) |
 
-## Local setup
+## Install
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-cp .env.example .env        # set FIRE_API_KEY and EVAL_ADMIN_TOKEN (python -c "import secrets;print(secrets.token_urlsafe(32))")
-.venv/bin/uvicorn app.main:app --port 8000     # migrations run automatically on startup
+cp .env.example .env   # set FIRE_API_KEY, EVAL_ADMIN_TOKEN; for production also AGENT_ACCESS_TOKEN, DATABASE_URL, COOKIE_SECURE=true
 ```
 
-Open http://127.0.0.1:8000 → **Agent** tab to ask questions, **Evaluation Center** tab (enter `EVAL_ADMIN_TOKEN`) for the dashboard.
+**Database.** Without `DATABASE_URL` the app uses SQLite (`data/evaluation.db`) and searches vectors in Python, which is
+fine for development. For production use PostgreSQL with pgvector:
+
+```sql
+CREATE ROLE agent LOGIN;  CREATE DATABASE agent OWNER agent;
+\c agent
+CREATE EXTENSION vector;          -- as a superuser, once
+```
+
+```bash
+DATABASE_URL=postgresql+psycopg://agent@/agent?host=/var/run/postgresql   # in .env
+```
+
+## Migrations
+
+Migrations run automatically at startup (`EVAL_AUTO_MIGRATE=true`). To run them by hand:
+
+```bash
+.venv/bin/alembic upgrade head          # uses DATABASE_URL
+```
+
+`0001` creates the evaluation tables; `0002` adds users, sessions, conversations, messages, documents, chunks
+(`vector(1536)` on PostgreSQL) and the trace route/timeline columns. Moving an existing SQLite install to PostgreSQL:
+
+```bash
+.venv/bin/python scripts/copy_sqlite_to_postgres.py sqlite:///data/evaluation.db "$DATABASE_URL"   # idempotent, re-runnable
+```
+
+## Start
+
+```bash
+.venv/bin/uvicorn app.main:app --port 8000
+```
+
+Open http://127.0.0.1:8000, create an account (enter the invite code if `AGENT_ACCESS_TOKEN` is set), upload documents
+under **Knowledge base**, and ask away. Indexing runs in the background inside the API process.
+
+## Environment variables
+
+All documented in [.env.example](.env.example). The important ones:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `FIRE_API_KEY` | — | Fire key (server-side only, never sent to the browser) |
+| `DATABASE_URL` | SQLite | App database (PostgreSQL + pgvector in production) |
+| `AGENT_ACCESS_TOKEN` | unset | Invite code required to create an account |
+| `COOKIE_SECURE` | false | Set `true` behind HTTPS |
+| `EVAL_ADMIN_TOKEN` | — | Opens the admin Evaluation Center |
+| `RAG_CHUNK_SIZE` / `RAG_CHUNK_OVERLAP` | 1200 / 200 | Chunking (characters) |
+| `EMBEDDING_MODEL` / `EMBEDDING_DIMENSIONS` | text-embedding-3-small / 1536 | Fire embedding model (dimension fixed by migration 0002) |
+| `RAG_TOP_K` / `RAG_CANDIDATE_K` | 6 / 24 | Passages given to the generator / fetched per query |
+| `RAG_SIMILARITY_THRESHOLD` / `RAG_RELATIVE_CUTOFF` | 0.30 / 0.75 | Minimum cosine; drop passages below 75% of the best |
+| `RAG_CONTEXT_CHARS` | 12000 | Context budget |
+| `MAX_UPLOAD_MB`, `MAX_DOCUMENTS_PER_USER`, `MAX_STORAGE_MB_PER_USER` | 15, 200, 250 | Upload limits and quotas |
+| `RATE_LIMIT_CHAT_PER_MINUTE`, `RATE_LIMIT_UPLOADS_PER_HOUR` | 12, 60 | Per-user rate limits |
 
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest            # unit + API + authorization + redaction + migrations + end-to-end flow (LLM calls are faked)
+.venv/bin/python -m pytest      # 156 tests (2 need PostgreSQL); LLM and embeddings faked, no network
+TEST_PG_URL="postgresql+psycopg://agent@/agent_test?host=..." .venv/bin/python -m pytest tests/test_pgvector.py   # real pgvector
 ```
 
-## Running the evaluation suite and regression tests
+Covers upload validation, extraction (real PDF/DOCX/MD/CSV/TXT built in the tests), cleaning, chunking, the Fire embedding
+client (retries, ordering, dimension checks), vector storage and search, retrieval relevance, metadata filters, reranking,
+context budgeting, citation validation, LangGraph routing for every branch, RAG generation with citations, the
+no-context path, error handling, conversation persistence, regenerate, accounts, CSRF, rate limits, per-user isolation
+of every route, activity scoping, and the original agent's unchanged protocol and evaluation pipeline.
+
+## RAG evaluation
 
 ```bash
-.venv/bin/python -m evaluation.run                       # all cases in evaluations/dataset/questions.json (calls Fire!)
-.venv/bin/python -m evaluation.run --limit 5 --category security
-.venv/bin/python -m evaluation.run --set-baseline        # save this run as evaluations/regression/baseline.json
-.venv/bin/python -m evaluation.run --fail-on-regression  # compare with the baseline; exit 1 on regression (CI)
-.venv/bin/python -m evaluation.regression --baseline suite_A --candidate suite_B
+.venv/bin/python -m evaluation.rag_eval                 # live: real embeddings, real agent, LLM judge (calls Fire)
+.venv/bin/python -m evaluation.rag_eval --offline       # deterministic retrieval smoke test, no network
 ```
 
-Outputs: `evaluations/results/<suite>.json`, `latest.json`, `evaluations/reports/<suite>.md`. The suite makes real Fire calls
-(roughly 4–8 workflow calls and ~4 judge calls per case); check your quota first.
+Indexes `evaluations/rag/docs` into a throw-away database and runs `evaluations/rag/cases.json` (12 answerable questions
+with ground truth across Markdown, a multi-page PDF and CSV, plus 2 unanswerable ones). Latest live run (`evaluations/rag/results/`):
 
-## Dashboard
+| Retrieval precision | Retrieval recall | Citation correctness | Fact recall | Abstention | Faithfulness | Answer relevance | Mean / p95 latency |
+|---|---|---|---|---|---|---|---|
+| 63% | 100% | 100% | 100% | 100% | 100% | 82% | 4.4 s / 6.4 s |
 
-Overall reliability, per-metric scores vs. targets, counts, latency/cost, trend charts (scores, latency, tokens, cost, failure and
-hallucination rate), per-agent statistics with drill-down, a filterable trace list (agent, model, date range, status, failed metric,
-trace ID), a trace detail view (execution flow, steps, context, final answer, per-metric reasons), and regression comparison between suite runs.
+Precision is "share of passages given to the generator that contain the ground-truth fact". The corpus is small, so a
+second, loosely related passage from the same document often passes the cutoff; the generator still cites the right one.
+Two evaluation-driven fixes are recorded in the history: a relative score cutoff (precision 17% → 63-73%) and contextual
+chunk headers (a PDF's title page was outranking the page that answered the question).
 
-![Evaluation Center](docs/img/evaluation-center.png)
-![Trace detail](docs/img/trace-detail.png)
+## Deploy (single server, Apache + systemd)
 
-## Observability & security (summary)
+Set `AGENT_ACCESS_TOKEN`, `EVAL_ADMIN_TOKEN`, `DATABASE_URL` and `COOKIE_SECURE=true` in `.env`, then
+`sudo bash deploy/install.sh <hostname>`: Let's Encrypt certificate, `agent-api` systemd service (uvicorn on
+127.0.0.1:8310) and an Apache HTTPS site. Request-size limits are enforced in the app itself (64 KB for API calls,
+10 × `MAX_UPLOAD_MB` for an upload request), not by the proxy. Re-run it, or
+`sudo systemctl restart agent-api`, to deploy changes. `docker compose up --build` also works (api + evaluation worker).
 
-Every log line has `trace_id=`; key events are `event=… key=value`. Secrets and common PII are redacted before storage; the
-evaluation API is read-only, closed unless `EVAL_ADMIN_TOKEN` is set, and requires a bearer token. See [docs/evaluation.md](docs/evaluation.md#security-model).
+## Known limitations
 
-## Production deployment
-
-```bash
-docker compose up --build        # api (EVAL_WORKER_MODE=external) + eval-worker sharing a volume
-```
-
-* One image, two processes: `uvicorn app.main:app` and `python -m evaluation.worker`. Migrations run at startup
-  (`EVAL_AUTO_MIGRATE`) or explicitly with `alembic upgrade head`.
-* SQLite is fine for a single host. For multiple replicas use a server database: set `EVAL_DATABASE_URL` and install its driver.
-* Put the app behind TLS; the evaluation token and Fire key travel in headers. Configure `EVAL_PRICING_JSON` to get cost figures.
-* Set `EVAL_ENABLED=false` to turn evaluation off entirely (traces are still stored).
-
-Environment variables are documented in `.env.example`.
-
-## Public deploy (single server, Apache + systemd)
-
-Set `AGENT_ACCESS_TOKEN` and `EVAL_ADMIN_TOKEN` in `.env`, then `sudo bash deploy/install.sh <hostname>`. It gets a Let's Encrypt
-certificate, installs the `agent-api` service (uvicorn on 127.0.0.1:8310) and an Apache HTTPS site. Re-run it (or
-`sudo systemctl restart agent-api`) to deploy code changes. Undo steps are in the script header.
+- **Scanned PDFs** (images only) are rejected with a message; there is no OCR. Tables inside PDFs are extracted as text lines.
+- **Exact vector search** (no ANN index) is correct and fast up to roughly 100k chunks per user; beyond that add an HNSW
+  index with pgvector ≥ 0.8 iterative scans.
+- **One process**: rate limits and the indexing queue live in the API process (single uvicorn worker). Several workers or
+  hosts need a shared rate-limit store and a separate indexing worker.
+- **Changing the embedding model or dimension** requires a migration and re-indexing every document.
+- **The Fire models used don't support native tool calling**, so retrieval is a graph branch chosen by the analyzer rather
+  than a tool the model calls mid-answer. Multi-hop questions that need two retrieval rounds are answered from one round.
+- The background **LLM-judge evaluation runs on every chat answer** (as in the original project), roughly doubling model
+  cost per question; set `EVAL_ENABLED=false` to turn it off.
+- No email-based password reset (accounts are invite-only); deleting an account must be done in the database.

@@ -5,15 +5,17 @@ is ever contacted directly.
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
-from typing import Any, List, Optional
+from typing import Any, AsyncIterator, List, Optional, Tuple
 
 import httpx
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.messages import AIMessageChunk
+from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from pydantic import Field
 
 logger = logging.getLogger("fire_agent.fire_llm")
@@ -137,3 +139,63 @@ class FireChatModel(BaseChatModel):
         content, fire_meta = self._parse_response(resp)
         message = AIMessage(content=content, response_metadata={"fire": fire_meta})
         return ChatResult(generations=[ChatGeneration(message=message)])
+
+    async def astream_chat(self, messages: List[BaseMessage]) -> AsyncIterator[Tuple[str, Any]]:
+        """Stream via POST /v1/chat/stream. Yields ("token", text) for each delta, then ("done", meta).
+
+        Fire's SSE events are {"type":"token","text":...} and a final {"type":"message_done", usage, call_id}.
+        """
+        headers = {"Authorization": f"Bearer {self._api_key()}", "Content-Type": "application/json"}
+        payload = self._payload(messages)
+        logger.info("fire_chat_stream_request species=%s n_messages=%d", self.species_name or "default", len(payload["messages"]))
+        meta: dict = {"species_name": self.species_name}
+        got_done = False
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(self.request_timeout, read=self.request_timeout)) as client:
+                async with client.stream("POST", f"{self.fire_base_url}/chat/stream", json=payload, headers=headers) as resp:
+                    if resp.status_code != 200:
+                        body = (await resp.aread()).decode(errors="replace")
+                        logger.error("fire_chat_stream_http_error status=%d", resp.status_code)
+                        raise FireAPIError(f"Fire API returned HTTP {resp.status_code}: {body[:300]}")
+                    async for line in resp.aiter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if not data or data == "[DONE]":
+                            continue
+                        try:
+                            event = json.loads(data)
+                        except json.JSONDecodeError:
+                            continue
+                        etype = event.get("type")
+                        if etype == "token" and event.get("text"):
+                            yield "token", event["text"]
+                        elif etype == "message_done":
+                            got_done = True
+                            meta.update({"call_id": event.get("call_id"), "usage": event.get("usage"), "model": event.get("model")})
+                        elif etype == "error":
+                            raise FireAPIError(f"Fire stream error: {str(event.get('message') or event)[:300]}")
+        except httpx.HTTPError as exc:
+            logger.error("fire_chat_stream_network_error error=%s", type(exc).__name__)
+            raise FireAPIError(f"Could not reach Fire API: {type(exc).__name__}") from exc
+        if not got_done:
+            logger.warning("fire_chat_stream_ended_without_message_done")
+        logger.info("fire_chat_stream_ok species=%s call_id=%s usage=%s", self.species_name or "default", meta.get("call_id"), meta.get("usage"))
+        yield "done", meta
+
+    async def _astream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Any = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[ChatGenerationChunk]:
+        """LangChain streaming interface (llm.astream(...)) on top of astream_chat."""
+        async for kind, payload in self.astream_chat(messages):
+            if kind == "token":
+                chunk = ChatGenerationChunk(message=AIMessageChunk(content=payload))
+                if run_manager:
+                    await run_manager.on_llm_new_token(payload, chunk=chunk)
+                yield chunk
+            else:
+                yield ChatGenerationChunk(message=AIMessageChunk(content="", response_metadata={"fire": payload}))

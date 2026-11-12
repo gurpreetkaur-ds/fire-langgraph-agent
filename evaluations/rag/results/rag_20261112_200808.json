@@ -1,0 +1,607 @@
+{
+  "summary": {
+    "run_id": "rag_20261112_200808",
+    "mode": "live end-to-end",
+    "cases": 14,
+    "embedding_model": "text-embedding-3-small",
+    "top_k": 6,
+    "threshold": 0.3,
+    "relative_cutoff": 0.75,
+    "chunk_size": 1200,
+    "chunk_overlap": 200,
+    "retrieval_precision": 0.6319,
+    "retrieval_recall": 1.0,
+    "citation_correctness": 1.0,
+    "fact_recall": 1.0,
+    "abstention_accuracy": 1.0,
+    "faithfulness": 1.0,
+    "relevance": 0.8155,
+    "citation_accuracy": 1.0,
+    "latency_ms_mean": 4447,
+    "latency_ms_p95": 6361
+  },
+  "cases": [
+    {
+      "id": "rw-abroad",
+      "question": "How many days per year can I work from another EU country?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4399,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.6878,
+          "relevant": true
+        },
+        {
+          "id": "S2",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4322,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4017,
+          "relevant": false
+        }
+      ],
+      "retrieval_precision": 0.3333333333333333,
+      "retrieval_recall": 1.0,
+      "answer": "According to your remote work policy, you may work from another EU country for up to **20 working days per calendar year** [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 1 claims contradict the context.",
+      "relevance": 0.75,
+      "relevance_reason": "The answer directly addresses the question by providing the specific number of days (20 working days per calendar year) and confirms the geographic scope (EU countries). It clarifies these are working days rather than calendar days. However, it does not mention whether approval is needed, if there are any restrictions, or other conditions that might apply.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "1 of 1 citations are supported by their cited source."
+    },
+    {
+      "id": "rw-outside-eu",
+      "question": "What do I need before working from outside the EU?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 5137,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.5345,
+          "relevant": true
+        }
+      ],
+      "retrieval_precision": 1.0,
+      "retrieval_recall": 1.0,
+      "answer": "According to your remote work policy, before working from outside the EU you need:\n\n- **HR and Legal approval** [S1]\n- **At least 30 days in advance** [S1]\n\nThis means you must obtain approval from both the HR and Legal departments, and you need to submit your request at minimum 30 days before you plan to start working from outside the EU [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 5 claims contradict the context.",
+      "relevance": 0.6667,
+      "relevance_reason": "The answer directly addresses the question by identifying the two main requirements: obtaining HR and Legal approval and providing 30 days advance notice. These are the key prerequisites mentioned. However, it does not explain how to submit the request or any other procedural details that might be part of 'what you need' (such as forms, documentation, or specific steps), though these may not have been in the source material.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "3 of 3 citations are supported by their cited source."
+    },
+    {
+      "id": "rw-stipend",
+      "question": "How much is the home-office stipend and how do I report a lost laptop?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4255,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.5438,
+          "relevant": true
+        },
+        {
+          "id": "S2",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.5154,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4136,
+          "relevant": false
+        },
+        {
+          "id": "S4",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3923,
+          "relevant": false
+        }
+      ],
+      "retrieval_precision": 0.25,
+      "retrieval_recall": 1.0,
+      "answer": "Based on your documents:\n\n**Home-office stipend:** The company provides a one-time home-office stipend of **450 EUR** [S1].\n\n**Reporting a lost laptop:** Lost devices must be reported to **security@northwind.example within 4 hours** [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 2 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses both parts of the question. It provides the specific amount of the home-office stipend (450 EUR) and explains how to report a lost laptop (email address security@northwind.example and the 4-hour timeframe requirement). All information is relevant and complete.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "2 of 2 citations are supported by their cited source."
+    },
+    {
+      "id": "rw-coworking",
+      "question": "Will the company pay for a co-working space?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 6361,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.5342,
+          "relevant": true
+        },
+        {
+          "id": "S2",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4644,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4031,
+          "relevant": false
+        },
+        {
+          "id": "S4",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4024,
+          "relevant": false
+        },
+        {
+          "id": "S5",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3997,
+          "relevant": false
+        },
+        {
+          "id": "S6",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3939,
+          "relevant": false
+        }
+      ],
+      "retrieval_precision": 0.16666666666666666,
+      "retrieval_recall": 1.0,
+      "answer": "Yes, the company will reimburse co-working space costs, but only under specific conditions [S1].\n\n**Reimbursement details:**\n- **Maximum amount:** Up to 200 EUR per month [S1]\n- **Eligibility requirement:** The employee must live more than 50 km from an office [S1]\n\nIf you live within 50 km of an office, co-working space costs would not be covered under this policy [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 4 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses whether the company pays for co-working space, clearly states it does under specific conditions, provides the eligibility requirement (living more than 50 km from an office), specifies the maximum reimbursement amount (200 EUR per month), and clarifies what happens if the condition is not met. All key aspects of the question are covered comprehensively.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "4 of 4 citations are supported by their cited source."
+    },
+    {
+      "id": "ir-sev1",
+      "question": "What counts as a Sev-1 incident and how fast must the status page be updated?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4897,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.5129,
+          "relevant": true
+        },
+        {
+          "id": "S2",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.4385,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "q3-engineering-report.pdf",
+          "page": 2,
+          "score": 0.3802,
+          "relevant": false
+        },
+        {
+          "id": "S4",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.3762,
+          "relevant": false
+        }
+      ],
+      "retrieval_precision": 0.25,
+      "retrieval_recall": 1.0,
+      "answer": "A **Sev-1 incident** is defined as situations where customers cannot pay or payments are double-charged [S1].\n\nWhen a Sev-1 occurs, the **status page must be updated within 15 minutes** of the incident being identified [S1].\n\nAdditionally, for a Sev-1 incident you must page the on-call engineer and the payments lead immediately [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 4 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses both parts of the question: it defines what counts as a Sev-1 incident (customers cannot pay or payments are double-charged) and specifies the status page update requirement (within 15 minutes). The additional information about paging the on-call engineer and payments lead, while not requested, is related context and does not detract from the core answer.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "3 of 3 citations are supported by their cited source."
+    },
+    {
+      "id": "ir-deploy",
+      "question": "During an incident, what should I do if there was a deploy in the last hour?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4817,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.5187,
+          "relevant": true
+        },
+        {
+          "id": "S2",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.4235,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.3744,
+          "relevant": false
+        }
+      ],
+      "retrieval_precision": 0.3333333333333333,
+      "retrieval_recall": 1.0,
+      "answer": "According to your incident runbook, if there was a deploy in the last 60 minutes during an incident, you should **roll it back first and investigate second** [S1].\n\nThis is part of the first response procedure, which also includes:\n- Acknowledging the page within 5 minutes\n- Checking the \"Payments Overview\" dashboard and the error budget burn rate [S1]",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 5 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses the question by stating the specific action to take if there was a deploy in the last hour during an incident (roll it back first, investigate second). It correctly identifies the 60-minute timeframe mentioned in the question. The additional context about acknowledging pages and checking dashboards, while related to incident response procedures, goes slightly beyond the specific question asked but provides helpful related information without being off-topic.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "2 of 2 citations are supported by their cited source."
+    },
+    {
+      "id": "ir-postmortem",
+      "question": "When is a post-mortem due and where are action items tracked?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4385,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "incident-runbook.md",
+          "page": null,
+          "score": 0.5023,
+          "relevant": true
+        }
+      ],
+      "retrieval_precision": 1.0,
+      "retrieval_recall": 1.0,
+      "answer": "A post-mortem is due **within 5 business days** for every Sev-1 and Sev-2 incident [S1]. Action items are tracked in the **RELIAB project** [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 3 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses both parts of the question: it specifies when post-mortems are due (within 5 business days for Sev-1 and Sev-2 incidents) and where action items are tracked (RELIAB project). All relevant aspects are covered with specific details.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "2 of 2 citations are supported by their cited source."
+    },
+    {
+      "id": "pr-team",
+      "question": "How much does the Team plan cost per month and how many seats does it include?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 3534,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "pricing.csv",
+          "page": null,
+          "score": 0.5017,
+          "relevant": true
+        }
+      ],
+      "retrieval_precision": 1.0,
+      "retrieval_recall": 1.0,
+      "answer": "The Team plan costs **\u20ac79 per month** and includes **10 seats** [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 2 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses both components of the question: the monthly cost (\u20ac79) and the number of seats included (10). Both pieces of information are clearly stated and sourced.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "1 of 1 citations are supported by their cited source."
+    },
+    {
+      "id": "pr-phone",
+      "question": "Which plan includes 24/7 phone support?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 3447,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "pricing.csv",
+          "page": null,
+          "score": 0.5164,
+          "relevant": true
+        }
+      ],
+      "retrieval_precision": 1.0,
+      "retrieval_recall": 1.0,
+      "answer": "The **Business** plan includes 24/7 phone support [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 1 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly identifies the Business plan as the one that includes 24/7 phone support, with a source citation. This fully addresses the single aspect of the question.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "1 of 1 citations are supported by their cited source."
+    },
+    {
+      "id": "pdf-q4",
+      "question": "What were the Q4 priorities in the engineering report?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 3994,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "q3-engineering-report.pdf",
+          "page": 1,
+          "score": 0.6093,
+          "relevant": false
+        },
+        {
+          "id": "S2",
+          "file": "q3-engineering-report.pdf",
+          "page": 4,
+          "score": 0.5824,
+          "relevant": true
+        },
+        {
+          "id": "S3",
+          "file": "q3-engineering-report.pdf",
+          "page": 3,
+          "score": 0.4774,
+          "relevant": false
+        },
+        {
+          "id": "S4",
+          "file": "q3-engineering-report.pdf",
+          "page": 2,
+          "score": 0.4382,
+          "relevant": false
+        }
+      ],
+      "retrieval_precision": 0.25,
+      "retrieval_recall": 1.0,
+      "answer": "According to the Q3 engineering report, the **Q4 priorities** are:\n\n- Migrate search to pgvector\n- Reduce cloud spend by 12 percent\n- Ship the mobile offline mode by December 15\n\n[S2]",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 4 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses the question by listing three specific Q4 priorities from the engineering report. All three priorities are clearly stated with specific details (the technology to migrate to, the percentage reduction target, and the specific deadline).",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "1 of 1 citations are supported by their cited source."
+    },
+    {
+      "id": "pdf-uptime",
+      "question": "What was platform uptime in Q3 and how many Sev-1 incidents were there?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4415,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "q3-engineering-report.pdf",
+          "page": 2,
+          "score": 0.7203,
+          "relevant": true
+        }
+      ],
+      "retrieval_precision": 1.0,
+      "retrieval_recall": 1.0,
+      "answer": "Based on your documents:\n\n**Platform uptime in Q3:** 99.95 percent [S1]\n\n**Number of Sev-1 incidents:** 2 (both occurred in the payments service) [S1]",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 3 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses both parts of the question: it provides the specific platform uptime percentage (99.95%) and the exact number of Sev-1 incidents (2) for Q3, with additional context about where the incidents occurred.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "2 of 2 citations are supported by their cited source."
+    },
+    {
+      "id": "pdf-hiring",
+      "question": "How much did the engineering team grow last quarter?",
+      "answerable": true,
+      "error": null,
+      "latency_ms": 4161,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "q3-engineering-report.pdf",
+          "page": 3,
+          "score": 0.6095,
+          "relevant": true
+        }
+      ],
+      "retrieval_precision": 1.0,
+      "retrieval_recall": 1.0,
+      "answer": "The engineering team grew by **7 engineers** last quarter, increasing from 41 to 48 engineers [S1].\n\nAdditionally, the team experienced 3.1% attrition during the quarter, and two staff engineer positions remained open at the end of the period [S1].",
+      "fact_recall": 1.0,
+      "citation_correctness": 1.0,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 4 claims contradict the context.",
+      "relevance": 1.0,
+      "relevance_reason": "The answer directly addresses the question about engineering team growth last quarter by providing the net growth (7 engineers), the starting and ending headcount (41 to 48), and relevant context about attrition and open positions. All information is relevant to understanding the team's growth.",
+      "citation_accuracy": 1.0,
+      "citation_accuracy_reason": "2 of 2 citations are supported by their cited source."
+    },
+    {
+      "id": "na-parental",
+      "question": "How many weeks of parental leave do employees get?",
+      "answerable": false,
+      "error": null,
+      "latency_ms": 4224,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3684,
+          "relevant": false
+        },
+        {
+          "id": "S2",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3671,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3234,
+          "relevant": false
+        },
+        {
+          "id": "S4",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3133,
+          "relevant": false
+        },
+        {
+          "id": "S5",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.278,
+          "relevant": false
+        },
+        {
+          "id": "S6",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.2685,
+          "relevant": false
+        }
+      ],
+      "answer": "Your documents don't contain information about parental leave. The sources provided cover the remote work policy at Northwind Labs, including eligibility, working abroad, core hours, equipment, security, and expenses, but they do not mention parental leave policies.",
+      "abstained": true,
+      "faithfulness": null,
+      "faithfulness_reason": "The response is a refusal; grounding against context does not apply (see safety).",
+      "relevance": 0.0,
+      "relevance_reason": "The answer directly addresses the question by explicitly stating that the requested information about parental leave is not available in the provided documents. This is a relevant and appropriate response to the question, even though it does not provide the specific number of weeks requested.",
+      "citation_accuracy": null,
+      "citation_accuracy_reason": "The response contains no citations."
+    },
+    {
+      "id": "na-ceo",
+      "question": "Who is the CEO of Northwind Labs?",
+      "answerable": false,
+      "error": null,
+      "latency_ms": 4238,
+      "route": "rag",
+      "sources": [
+        {
+          "id": "S1",
+          "file": "q3-engineering-report.pdf",
+          "page": 1,
+          "score": 0.4929,
+          "relevant": false
+        },
+        {
+          "id": "S2",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.4774,
+          "relevant": false
+        },
+        {
+          "id": "S3",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3847,
+          "relevant": false
+        },
+        {
+          "id": "S4",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3363,
+          "relevant": false
+        },
+        {
+          "id": "S5",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3133,
+          "relevant": false
+        },
+        {
+          "id": "S6",
+          "file": "remote-work-policy.md",
+          "page": null,
+          "score": 0.3085,
+          "relevant": false
+        }
+      ],
+      "answer": "Your documents do not contain information about who the CEO of Northwind Labs is. The sources provided include a Q3 Engineering Report title page and the company's Remote Work Policy, but neither mentions the CEO or executive leadership.",
+      "abstained": true,
+      "faithfulness": 1.0,
+      "faithfulness_reason": "0 of 5 claims contradict the context.",
+      "relevance": 0.0,
+      "relevance_reason": "The answer directly addresses the question by stating that the requested information (CEO identity) is not available in the provided documents. While it does not provide the CEO's name, it is a relevant response explaining the absence of information rather than being off-topic or unresponsive.",
+      "citation_accuracy": null,
+      "citation_accuracy_reason": "The response contains no citations."
+    }
+  ]
+}

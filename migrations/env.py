@@ -5,6 +5,7 @@ from sqlalchemy import create_engine, pool
 
 from evaluation.config import get_settings
 from evaluation.models import Base
+import app.models  # noqa: F401  (registers the app tables on Base.metadata)
 
 config = context.config
 target_metadata = Base.metadata

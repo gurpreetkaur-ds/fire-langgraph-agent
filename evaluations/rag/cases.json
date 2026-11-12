@@ -1,0 +1,163 @@
+{
+  "version": "1.0",
+  "description": "RAG evaluation: questions over the documents (Markdown, multi-page PDF, CSV) in evaluations/rag/docs with ground truth. relevant_phrases mark which retrieved passages count as relevant (case-insensitive substring match); expected_facts must appear in a correct answer ('a|b' lists accepted spellings). answerable=false cases must be declined.",
+  "cases": [
+    {
+      "id": "rw-abroad",
+      "question": "How many days per year can I work from another EU country?",
+      "relevant_phrases": [
+        "20 working days"
+      ],
+      "expected_facts": [
+        "20"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "rw-outside-eu",
+      "question": "What do I need before working from outside the EU?",
+      "relevant_phrases": [
+        "outside the EU"
+      ],
+      "expected_facts": [
+        "HR",
+        "Legal",
+        "30 days"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "rw-stipend",
+      "question": "How much is the home-office stipend and how do I report a lost laptop?",
+      "relevant_phrases": [
+        "450 EUR",
+        "within 4 hours"
+      ],
+      "expected_facts": [
+        "450",
+        "4 hours"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "rw-coworking",
+      "question": "Will the company pay for a co-working space?",
+      "relevant_phrases": [
+        "Co-working spaces"
+      ],
+      "expected_facts": [
+        "200",
+        "50 km"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "ir-sev1",
+      "question": "What counts as a Sev-1 incident and how fast must the status page be updated?",
+      "relevant_phrases": [
+        "Sev-1: customers"
+      ],
+      "expected_facts": [
+        "15 minutes"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "ir-deploy",
+      "question": "During an incident, what should I do if there was a deploy in the last hour?",
+      "relevant_phrases": [
+        "roll it back"
+      ],
+      "expected_facts": [
+        "roll"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "ir-postmortem",
+      "question": "When is a post-mortem due and where are action items tracked?",
+      "relevant_phrases": [
+        "post-mortem"
+      ],
+      "expected_facts": [
+        "5 business days",
+        "RELIAB"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "pr-team",
+      "question": "How much does the Team plan cost per month and how many seats does it include?",
+      "relevant_phrases": [
+        "plan: Team"
+      ],
+      "expected_facts": [
+        "79",
+        "10"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "pr-phone",
+      "question": "Which plan includes 24/7 phone support?",
+      "relevant_phrases": [
+        "24/7 phone"
+      ],
+      "expected_facts": [
+        "Business"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "pdf-q4",
+      "question": "What were the Q4 priorities in the engineering report?",
+      "relevant_phrases": [
+        "Q4 priorities"
+      ],
+      "expected_facts": [
+        "pgvector",
+        "12",
+        "December 15"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "pdf-uptime",
+      "question": "What was platform uptime in Q3 and how many Sev-1 incidents were there?",
+      "relevant_phrases": [
+        "uptime was 99.95"
+      ],
+      "expected_facts": [
+        "99.95",
+        "two|2"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "pdf-hiring",
+      "question": "How much did the engineering team grow last quarter?",
+      "relevant_phrases": [
+        "grew from 41 to 48"
+      ],
+      "expected_facts": [
+        "41",
+        "48"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "na-parental",
+      "question": "How many weeks of parental leave do employees get?",
+      "relevant_phrases": [],
+      "expected_facts": [],
+      "answerable": false
+    },
+    {
+      "id": "na-ceo",
+      "question": "Who is the CEO of Northwind Labs?",
+      "relevant_phrases": [],
+      "expected_facts": [],
+      "answerable": false
+    }
+  ]
+}

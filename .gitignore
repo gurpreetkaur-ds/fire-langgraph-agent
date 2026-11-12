@@ -25,3 +25,9 @@ logs/
 # Local data
 data/*.db
 data/*.db-*
+
+# Uploaded documents (user data)
+data/uploads/
+
+# Local backups (may contain secrets / user data)
+data/backups/

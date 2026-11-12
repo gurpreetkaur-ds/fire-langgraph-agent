@@ -7,7 +7,7 @@
   ];
   const LABEL = Object.fromEntries(METRICS);
   const LOWER_BETTER = new Set(["hallucination"]);
-  const SERIES_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500"]; // fixed order, validated on the dark surface
+  const SERIES_COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"]; // theme tokens (eval.css), fixed order
   const PAGE = 15;
   const $ = (id) => document.getElementById(id);
   const state = { token: null, offset: 0, total: 0, thresholds: {}, series: null, table: false };
@@ -43,14 +43,6 @@
   }
 
   // ---------- gate / tabs ----------
-  function show(view) {
-    const evalOn = view === "eval";
-    $("agentView").hidden = evalOn;
-    $("evalView").hidden = !evalOn;
-    $("tabAgent").classList.toggle("active", !evalOn);
-    $("tabEval").classList.toggle("active", evalOn);
-    if (evalOn) enterEval();
-  }
 
   function gate(message) {
     $("evalGate").hidden = false;
@@ -163,14 +155,14 @@
       series.forEach((s) => s.values.forEach((v, i) => {
         if (v == null) return;
         const top = y(v), base = y(0), r = Math.min(4, bw / 2, base - top);
-        g += `<path d="M${x(i) - bw / 2},${base} V${top + r} Q${x(i) - bw / 2},${top} ${x(i) - bw / 2 + r},${top} H${x(i) + bw / 2 - r} Q${x(i) + bw / 2},${top} ${x(i) + bw / 2},${top + r} V${base} Z" fill="${s.color}"/>`;
+        g += `<path d="M${x(i) - bw / 2},${base} V${top + r} Q${x(i) - bw / 2},${top} ${x(i) - bw / 2 + r},${top} H${x(i) + bw / 2 - r} Q${x(i) + bw / 2},${top} ${x(i) + bw / 2},${top + r} V${base} Z" style="fill:${s.color}"/>`;
       }));
     } else {
       series.forEach((s) => {
         let d = "", pen = false;
         s.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i) + "," + y(v); pen = true; });
-        g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-        s.values.forEach((v, i) => { if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="${n > 20 ? 2 : 3.5}" fill="${s.color}" stroke="#151a2b" stroke-width="2"/>`; });
+        g += `<path d="${d}" fill="none" style="stroke:${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+        s.values.forEach((v, i) => { if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="${n > 20 ? 2 : 3.5}" style="fill:${s.color};stroke:var(--chart-dot-ring)" stroke-width="2"/>`; });
       });
     }
     // hover layer: one full-height hit column per x position
@@ -321,8 +313,8 @@
   }
 
   // ---------- wiring ----------
-  $("tabAgent").addEventListener("click", () => show("agent"));
-  $("tabEval").addEventListener("click", () => show("eval"));
+  // The app shell (static/js/main.js) calls this when the Evaluation view is opened.
+  window.EvalCenter = { open: enterEval };
   $("evalTokenForm").addEventListener("submit", (e) => {
     e.preventDefault();
     state.token = $("evalToken").value.trim();

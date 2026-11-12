@@ -106,7 +106,9 @@ async def test_regression_flags_degraded_improved_unchanged_and_newly_failing(db
     assert "Degraded:" in render_text(rep)
 
 
-async def test_regression_reports_improvement_and_no_regression(db):
+async def test_regression_reports_improvement_and_no_regression(db, monkeypatch):
+    # Suites here take microseconds of real time; their latency ratio is noise, not what this test checks.
+    monkeypatch.setenv("EVAL_REGRESSION_LATENCY_PCT", "1000")
     bad = await _suite("suite_a", faithful=False)
     good = await _suite("suite_b")
     rep = compare(bad, good)

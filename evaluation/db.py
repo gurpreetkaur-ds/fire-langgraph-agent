@@ -32,6 +32,8 @@ def init_engine(url: Optional[str] = None) -> Engine:
             kwargs["connect_args"] = {"check_same_thread": False, "timeout": 30}
             if ":memory:" not in url:
                 Path(url.replace("sqlite:///", "", 1)).parent.mkdir(parents=True, exist_ok=True)
+        else:
+            kwargs.update(pool_pre_ping=True, pool_size=5, max_overflow=5)
         _engine = create_engine(url, **kwargs)
         if url.startswith("sqlite"):
 

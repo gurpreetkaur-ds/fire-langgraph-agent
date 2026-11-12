@@ -95,7 +95,10 @@ class Settings:
         if mode not in {"inline", "external"}:
             raise ValueError("EVAL_WORKER_MODE must be 'inline' or 'external'")
         return cls(
-            database_url=os.environ.get("EVAL_DATABASE_URL") or f"sqlite:///{BASE_DIR / 'data' / 'evaluation.db'}",
+            # DATABASE_URL is the app-wide database (accounts, chats, documents, vectors, evaluation).
+            # EVAL_DATABASE_URL is the older name and is still honoured.
+            database_url=os.environ.get("DATABASE_URL") or os.environ.get("EVAL_DATABASE_URL")
+            or f"sqlite:///{BASE_DIR / 'data' / 'evaluation.db'}",
             auto_migrate=_env_bool("EVAL_AUTO_MIGRATE", True),
             enabled=_env_bool("EVAL_ENABLED", True),
             worker_mode=mode,

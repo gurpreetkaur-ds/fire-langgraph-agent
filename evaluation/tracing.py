@@ -100,10 +100,35 @@ class TraceCollector:
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     steps: List[StepRecord] = field(default_factory=list)
     tool_calls: List[ToolCallData] = field(default_factory=list)
+    route: Optional[str] = None  # rag | research | direct
+    # Observable node-level events (never prompts or model reasoning): see node_started/node_finished/add_event.
+    timeline: List[dict] = field(default_factory=list)
     _t0: float = field(default_factory=time.perf_counter)
+    _open: dict = field(default_factory=dict)
 
     def elapsed_ms(self) -> float:
         return (time.perf_counter() - self._t0) * 1000.0
+
+    def node_started(self, node: str) -> None:
+        self._open[node] = self.elapsed_ms()
+
+    def node_finished(self, node: str, summary: str = "", *, status: str = "ok", **data: Any) -> dict:
+        start = self._open.pop(node, None)
+        now = self.elapsed_ms()
+        entry = {"kind": "node", "node": node, "status": status, "started_ms": round(start if start is not None else now, 1),
+                 "duration_ms": round(now - start, 1) if start is not None else 0.0, "summary": summary[:300]}
+        if data:
+            entry["data"] = redact_obj(data)
+        self.timeline.append(entry)
+        return entry
+
+    def add_event(self, kind: str, node: str, summary: str, **data: Any) -> dict:
+        entry = {"kind": kind, "node": node, "status": "ok" if kind != "error" else "error",
+                 "started_ms": round(self.elapsed_ms(), 1), "duration_ms": 0.0, "summary": summary[:300]}
+        if data:
+            entry["data"] = redact_obj(data)
+        self.timeline.append(entry)
+        return entry
 
     def record_step(self, **kw: Any) -> StepRecord:
         step = StepRecord(seq=len(self.steps) + 1, **kw)
@@ -183,3 +208,65 @@ async def traced_invoke(agent_name: str, node: str, llm: Any, messages: List[Bas
         input_tokens=in_tok, output_tokens=out_tok, call_id=meta.get("call_id"),
     )
     return response
+
+
+async def traced_stream(agent_name: str, node: str, llm: Any, messages: List[BaseMessage], on_token=None) -> str:
+    """Like traced_invoke, but streams text deltas to `on_token(text)` as they arrive and returns the full text.
+
+    Uses the model's `astream_chat` (Fire /v1/chat/stream) when available; otherwise falls back to a single
+    `ainvoke` and emits the whole answer as one delta, so test doubles and non-streaming models still work.
+    """
+    if not hasattr(llm, "astream_chat"):
+        response = await traced_invoke(agent_name, node, llm, messages)
+        text = str(response.content)
+        if on_token:
+            await _maybe_await(on_token(text))
+        return text
+    trace = get_current_trace()
+    model = getattr(llm, "species_name", None) or "fire-default"
+    started = datetime.now(timezone.utc)
+    t0 = time.perf_counter()
+    prompt_preview = truncate(redact_text("\n".join(str(m.content) for m in messages)), PREVIEW_CHARS)
+    parts: List[str] = []
+    meta: dict = {}
+    first_token_ms: Optional[float] = None
+    try:
+        async for kind, payload in llm.astream_chat(messages):
+            if kind == "token":
+                if first_token_ms is None:
+                    first_token_ms = (time.perf_counter() - t0) * 1000.0
+                parts.append(payload)
+                if on_token:
+                    await _maybe_await(on_token(payload))
+            elif kind == "done":
+                meta = payload or {}
+    except Exception as exc:
+        latency = (time.perf_counter() - t0) * 1000.0
+        if trace:
+            trace.record_step(
+                agent_name=agent_name, node=node, model_name=model, call_id=None, started_at=started,
+                latency_ms=latency, input_tokens=None, output_tokens=None, estimated_cost=None,
+                success=False, error=redact_text(f"{type(exc).__name__}: {exc}"),
+                input_preview=prompt_preview, output_preview=truncate(redact_text("".join(parts)), PREVIEW_CHARS) or None,
+            )
+        log_event(logger, "llm_call", logging.ERROR, agent=agent_name, model=model, latency_ms=round(latency), success=False, streamed=True)
+        raise
+    latency = (time.perf_counter() - t0) * 1000.0
+    text = "".join(parts)
+    usage = meta.get("usage") or {}
+    in_tok, out_tok = usage.get("input"), usage.get("output")
+    cost = estimate_cost(model, in_tok, out_tok)
+    if trace:
+        trace.record_step(
+            agent_name=agent_name, node=node, model_name=model, call_id=meta.get("call_id"), started_at=started,
+            latency_ms=latency, input_tokens=in_tok, output_tokens=out_tok, estimated_cost=cost,
+            success=True, error=None, input_preview=prompt_preview, output_preview=truncate(redact_text(text), PREVIEW_CHARS),
+        )
+    log_event(logger, "llm_call", agent=agent_name, model=model, latency_ms=round(latency), first_token_ms=round(first_token_ms or 0),
+              input_tokens=in_tok, output_tokens=out_tok, call_id=meta.get("call_id"), streamed=True)
+    return text
+
+
+async def _maybe_await(value: Any) -> None:
+    if hasattr(value, "__await__"):
+        await value

@@ -43,6 +43,9 @@ class AgentTrace(Base):
     tool_call_count: Mapped[int] = mapped_column(Integer, default=0)
     success: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     error: Mapped[Optional[str]] = mapped_column(Text)
+    route: Mapped[Optional[str]] = mapped_column(String(20), index=True)  # rag | research | direct (migration 0002)
+    # Node-level timeline incl. non-LLM nodes: [{node, status, started_ms, duration_ms, summary}] (migration 0002)
+    timeline: Mapped[Optional[list[Any]]] = mapped_column(JSON)
 
     steps: Mapped[list["AgentStep"]] = relationship(
         back_populates="trace", cascade="all, delete-orphan", order_by="AgentStep.seq"

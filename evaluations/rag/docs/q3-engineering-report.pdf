@@ -1,0 +1,83 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 78 >>
+stream
+BT /F1 11 Tf 14 TL 50 780 Td
+(Q3 Engineering Report - Northwind Labs) Tj T*
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 612 842] /Contents 2 0 R /Resources << /Font << /F1 1 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 224 >>
+stream
+BT /F1 11 Tf 14 TL 50 780 Td
+(Platform reliability: uptime was 99.95 percent in Q3.) Tj T*
+(There were two Sev-1 incidents, both in the payments service.) Tj T*
+(Mean time to recovery dropped from 47 to 22 minutes.) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 612 842] /Contents 4 0 R /Resources << /Font << /F1 1 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 187 >>
+stream
+BT /F1 11 Tf 14 TL 50 780 Td
+(Hiring: the team grew from 41 to 48 engineers.) Tj T*
+(Attrition was 3.1 percent for the quarter.) Tj T*
+(Two staff engineer positions remain open.) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 612 842] /Contents 6 0 R /Resources << /Font << /F1 1 0 R >> >> >>
+endobj
+8 0 obj
+<< /Length 181 >>
+stream
+BT /F1 11 Tf 14 TL 50 780 Td
+(Q4 priorities: migrate search to pgvector,) Tj T*
+(reduce cloud spend by 12 percent,) Tj T*
+(and ship the mobile offline mode by December 15.) Tj T*
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 10 0 R /MediaBox [0 0 612 842] /Contents 8 0 R /Resources << /Font << /F1 1 0 R >> >> >>
+endobj
+10 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R] /Count 4 >>
+endobj
+11 0 obj
+<< /Type /Catalog /Pages 10 0 R >>
+endobj
+12 0 obj
+<< /Title (Test Handbook) /Author (QA) >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000207 00000 n 
+0000000334 00000 n 
+0000000609 00000 n 
+0000000736 00000 n 
+0000000974 00000 n 
+0000001101 00000 n 
+0000001333 00000 n 
+0000001460 00000 n 
+0000001536 00000 n 
+0000001587 00000 n 
+trailer
+<< /Size 13 /Root 11 0 R /Info 12 0 R >>
+startxref
+1645
+%%EOF
