@@ -7,7 +7,20 @@ direct answer, and every run is traced and automatically evaluated.
 
 All model calls go through **Fire** (`/v1/chat`, `/v1/chat/stream`, `/v1/embed`); vectors live in **PostgreSQL + pgvector**.
 
-![Chat with cited answer](docs/img/chat-rag.png)
+![Chat with a cited answer and the live Intelligence panel](docs/img/chat-rag.png)
+
+### Light and dark themes
+
+A soft pastel light theme (the default) and a midnight-plum dark theme, switchable from the sidebar and remembered per browser.
+
+| Light | Dark |
+|---|---|
+| ![Welcome screen, light theme](docs/img/welcome-light.png) | ![Welcome screen, dark theme](docs/img/welcome-dark.png) |
+| ![Cited answer, light theme](docs/img/chat-rag.png) | ![Cited answer, dark theme](docs/img/chat-rag-dark.png) |
+
+| Sign in | Phone (light) | Phone (dark) |
+|---|---|---|
+| ![Sign-in screen](docs/img/sign-in.png) | ![Welcome on a phone](docs/img/mobile-welcome-light.png) | ![Cited answer on a phone](docs/img/mobile-chat-dark.png) |
 
 ## What's inside
 
