@@ -9,20 +9,41 @@ direct answer, and every run is traced and automatically evaluated.
 
 All model calls go through **Fire** (`/v1/chat`, `/v1/chat/stream`, `/v1/embed`); vectors live in **PostgreSQL + pgvector**.
 
-![Chat with a cited answer and the live Intelligence panel](docs/img/chat-rag.png)
+![Fire Agent: a cited answer with the live Intelligence panel (light theme)](docs/img/chat-light.png)
 
-### Light and dark themes
+## Screenshots
 
-A soft pastel light theme (the default) and a midnight-plum dark theme, switchable from the sidebar and remembered per browser.
+Every screen comes in a soft pastel **light theme** (the default) and a midnight-plum **dark theme**.
 
-| Light | Dark |
-|---|---|
-| ![Welcome screen, light theme](docs/img/welcome-light.png) | ![Welcome screen, dark theme](docs/img/welcome-dark.png) |
-| ![Cited answer, light theme](docs/img/chat-rag.png) | ![Cited answer, dark theme](docs/img/chat-rag-dark.png) |
-
-| Sign in | Phone (light) | Phone (dark) |
+| Screen | Light | Dark |
 |---|---|---|
-| ![Sign-in screen](docs/img/sign-in.png) | ![Welcome on a phone](docs/img/mobile-welcome-light.png) | ![Cited answer on a phone](docs/img/mobile-chat-dark.png) |
+| **Welcome** | ![Welcome, light theme](docs/img/welcome-light.png) | ![Welcome, dark theme](docs/img/welcome-dark.png) |
+| **Answer with citations + Intelligence panel** | ![Answer with citations + Intelligence panel, light theme](docs/img/chat-light.png) | ![Answer with citations + Intelligence panel, dark theme](docs/img/chat-dark.png) |
+| **Knowledge base** | ![Knowledge base, light theme](docs/img/knowledge-base-light.png) | ![Knowledge base, dark theme](docs/img/knowledge-base-dark.png) |
+| **Agent activity** | ![Agent activity, light theme](docs/img/activity-light.png) | ![Agent activity, dark theme](docs/img/activity-dark.png) |
+| **Settings** | ![Settings, light theme](docs/img/settings-light.png) | ![Settings, dark theme](docs/img/settings-dark.png) |
+| **AI Evaluation Center** | ![AI Evaluation Center, light theme](docs/img/evaluation-center-light.png) | ![AI Evaluation Center, dark theme](docs/img/evaluation-center-dark.png) |
+| **Evaluation trace detail** | ![Evaluation trace detail, light theme](docs/img/trace-detail-light.png) | ![Evaluation trace detail, dark theme](docs/img/trace-detail-dark.png) |
+| **Sign in** | ![Sign in, light theme](docs/img/sign-in-light.png) | ![Sign in, dark theme](docs/img/sign-in-dark.png) |
+
+**On a phone**
+
+| Welcome (light) | Answer (light) | Welcome (dark) | Answer (dark) |
+|---|---|---|---|
+| ![Phone welcome, light](docs/img/phone-welcome-light.png) | ![Phone answer, light](docs/img/phone-chat-light.png) | ![Phone welcome, dark](docs/img/phone-welcome-dark.png) | ![Phone answer, dark](docs/img/phone-chat-dark.png) |
+
+## Design
+
+- **Two themes with different personalities.** Light: warm ivory, lavender, pink, powder blue and peach, soft shadows.
+  Dark: deep midnight plum with luminous lavender, coral and cyan accents, ambient gradients and glowing focus states.
+- **Theme toggle** at the bottom of the sidebar (and on the sign-in page). The choice is remembered per browser and
+  applied before the first paint, so there is no flash of the wrong theme.
+- **Identity**: a small lavender butterfly as the logo and favicon (readable at 16 px on light and dark tabs).
+- **Built on design tokens**: every colour is a CSS variable in `static/css/app.css` (`:root` for light,
+  `:root[data-theme="dark"]` for dark), so all screens, including the Evaluation Center charts, follow the theme.
+- **Typography**: Plus Jakarta Sans for headings, Inter for text, both self-hosted.
+- **Details**: message entrance animations, a typing indicator while the agent works, gentle hover lifts, a responsive
+  sidebar drawer on phones; text colours meet WCAG AA contrast and animations switch off with `prefers-reduced-motion`.
 
 ## What's inside
 
@@ -39,10 +60,6 @@ A soft pastel light theme (the default) and a midnight-plum dark theme, switchab
   **Agent activity** (execution timelines, model and tool latency, tokens, errors) and **Settings**.
 - **AI Evaluation Center** (admin, from the original project): LLM-judge faithfulness, relevance, groundedness, citation
   accuracy, tool accuracy, hallucination and safety for every request, trends, regression suites → [docs/evaluation.md](docs/evaluation.md).
-
-| Knowledge base | Agent activity |
-|---|---|
-| ![Knowledge base](docs/img/knowledge-base.png) | ![Agent activity](docs/img/activity.png) |
 
 ## Install
 
@@ -85,7 +102,7 @@ Migrations run automatically at startup (`EVAL_AUTO_MIGRATE=true`). To run them 
 .venv/bin/uvicorn app.main:app --port 8000
 ```
 
-Open http://localhost:8000 in your browser (the live version runs at **https://agent.papillon.website**), create an account (enter the invite code if `AGENT_ACCESS_TOKEN` is set), upload documents
+Open http://localhost:8000 in your browser, create an account (enter the invite code if `AGENT_ACCESS_TOKEN` is set), upload documents
 under **Knowledge base**, and ask away. Indexing runs in the background inside the API process.
 
 ## Environment variables
@@ -110,7 +127,7 @@ All documented in [.env.example](.env.example). The important ones:
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest      # 156 tests (2 need PostgreSQL); LLM and embeddings faked, no network
+.venv/bin/python -m pytest      # 160 tests (2 need PostgreSQL); LLM and embeddings faked, no network
 TEST_PG_URL="postgresql+psycopg://agent@/agent_test?host=..." .venv/bin/python -m pytest tests/test_pgvector.py   # real pgvector
 ```
 

@@ -66,3 +66,8 @@ table.data tr.click:hover td, table.data tr.click:focus td { background: var(--s
 :root[data-theme="dark"] #evalView .card { background: rgba(33, 28, 45, 0.6); }
 :root[data-theme="dark"] #evalView { --s1: #B99AFF; --s2: #FF8D9D; --s3: #76D9E8; --s4: #F5C778; }
 #evalView { --s1: #7556D6; --s2: #D0607E; --s3: #2D8DA0; --s4: #B0721A; }
+/* the Evaluation Center's execution "flow" chips share the .step class with the Intelligence panel's timeline;
+   undo the panel's grid layout and connector line here */
+#evalView .flow .step { display: inline-block; padding: 8px 12px; }
+#evalView .flow .step::before { display: none; }
+#evalView .tile .v { overflow-wrap: anywhere; }
